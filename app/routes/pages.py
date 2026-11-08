@@ -17,9 +17,8 @@ from .. import models
 router = APIRouter()
 
 # Экраны, пришедшие в ТЗ позже T03: временно заглушка, но уже под ролью.
-# /journal реализован в T05 (routes/journal.py), /staff — в T04 (routes/staff.py).
+# /journal — T05, /staff — T04, /overview — T09 (routes/overview.py).
 _PLACEHOLDERS = {
-    "overview": ("Обзор управляющего", "T09"),
     "history": ("История", "T10"),
 }
 
@@ -38,11 +37,6 @@ def _placeholder(request: Request, title: str, task: str) -> HTMLResponse:
         request, "stub.html",
         {"page_title": title, "feature": title, "task": task},
     )
-
-
-@router.get("/overview", response_class=HTMLResponse)
-def overview(request: Request, user: models.User = Depends(require_manager)):
-    return _placeholder(request, _PLACEHOLDERS["overview"][0], _PLACEHOLDERS["overview"][1])
 
 
 @router.get("/history", response_class=HTMLResponse)

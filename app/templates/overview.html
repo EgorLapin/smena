@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Обзор</h1>
+  <p class="subscription">{{ subscription }}</p>
+
+  <h2 class="section">Непринятые смены</h2>
+  {% if not pending %}
+    <p class="muted">Все смены приняты</p>
+  {% endif %}
+  {% for row in pending %}
+    <div class="card pending-card">
+      <div class="issue-head">
+        <a class="issue-place" href="/handovers/{{ row.handover.id }}">
+          Смена {{ row.sender_name }}</a>
+        {% if row.is_demo %}<span class="tag tag-demo">Демо</span>{% endif %}
+        {% if row.overdue %}<span class="tag tag-overdue">Просрочено</span>{% endif %}
+      </div>
+      <div class="muted">Сдал: {{ row.sender_name }}, {{ row.sent_local }} ·
+        открытых: {{ row.open_count }} · прошло {{ row.age }}</div>
+    </div>
+  {% endfor %}
+
+  <h2 class="section">Затянувшиеся вопросы</h2>
+  {% if not stale %}
+    <p class="muted">Затянувшихся вопросов нет</p>
+  {% endif %}
+  {% for row in stale %}
+    <div class="card">
+      <div class="issue-head">
+        <a class="issue-place" href="/issues/{{ row.issue.id }}">{{ row.issue.place }}</a>
+        <span class="muted">· перенесён {{ row.issue.handover_count }} раз(а) · открыт {{ row.age }}</span>
+      </div>
+      <div class="issue-desc">{{ row.issue.description }}</div>
+      <div class="muted">Сейчас у: {{ row.admin_name }}</div>
+    </div>
+  {% endfor %}
+
+  <h2 class="section">Принятие смен за 30 дней</h2>
+  {% if handed %}
+    <p>Сдано {{ handed }}, принято {{ accepted }} — доля принятых {{ share }}</p>
+  {% else %}
+    <p class="muted">Нет данных</p>
+  {% endif %}
+
+  <div class="btn-row">
+    <form method="post" action="/demo/handover" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+      <button type="submit" class="btn btn-secondary">Создать демо-передачу</button>
+    </form>
+  </div>
+{% endblock %}

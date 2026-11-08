@@ -131,6 +131,9 @@ form.inline input[type="password"] {
        background: #e8f0ed; color: var(--accent-dark); }
 .tag-open { background: #fff1d6; color: #7a5800; }
 .tag-closed { background: #e5f4ec; color: #14503d; }
+.tag-demo { background: #ede7f6; color: #5e35b1; }
+.tag-overdue { background: #fdecea; color: #b3261e; }
+.subscription { color: var(--muted); margin-top: -0.5rem; }
 .closed-block { margin-top: 1rem; }
 .closed-block summary { cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;
                         font-size: 0.95rem; color: var(--muted); min-height: 44px; }
