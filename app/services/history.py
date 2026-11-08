@@ -101,7 +101,7 @@ def search_issues(
         .offset((page - 1) * PAGE_SIZE)
     ).all()
 
-    # Текущий администратор смены вопроса (для cột «сейчас у»).
+    # Текущий администратор смены вопроса (для колонки «сейчас у»).
     result = []
     for issue, last_event in rows:
         shift = session.get(models.Shift, issue.current_shift_id)
