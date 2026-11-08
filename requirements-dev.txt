@@ -1,0 +1,4 @@
+-r requirements.txt
+# Тестовое окружение (ТЗ: pytest; httpx нужен TestClient Starlette)
+pytest>=8
+httpx>=0.27

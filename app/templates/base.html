@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title }} — СменаПринята</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">Смена<span>Принята</span></a>
+    <nav class="topnav">
+      <!-- Навигация появится на T03 (вход/выход) и T06 (журнал) -->
+      {% block topnav %}{% endblock %}
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Сюда T02+ будут выводить flash-сообщения об ошибках по таблице ошибок ТЗ -->
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    СменаПринята — журнал передачи смены · учебный MVP, 2026
+  </footer>
+</body>
+</html>

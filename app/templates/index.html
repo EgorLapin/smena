@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>СменаПринята</h1>
+  <p class="muted">Каркас собран (T01). Функции подключаются по плану задач:</p>
+  <ul class="stub-list">
+    <li><a href="/stub/login">Вход и выход</a> — T03</li>
+    <li><a href="/stub/journal">Журнал записей</a> — T06/T07</li>
+    <li><a href="/stub/handover">Сдача и приём смены</a> — T08/T09</li>
+    <li><a href="/stub/hotels">Отели, номера, сотрудники</a> — T04/T12</li>
+  </ul>
+  <p class="muted">Служебное: <code>GET /health</code> — проверка живости для Caddy/systemd.</p>
+{% endblock %}
