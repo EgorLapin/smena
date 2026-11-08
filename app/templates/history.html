@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>История</h1>
+
+  <p class="tabs">
+    <a class="tab {% if tab == 'issues' %}tab-active{% endif %}" href="/history?tab=issues">Вопросы</a>
+    <a class="tab {% if tab == 'handovers' %}tab-active{% endif %}" href="/history?tab=handovers">Передачи</a>
+  </p>
+
+  {% if tab == 'issues' %}
+    {% if filter_message %}<div class="flash flash-error" role="alert">{{ filter_message }}</div>{% endif %}
+
+    <form method="get" action="/history" class="filters">
+      <input type="hidden" name="tab" value="issues">
+      <label>Место содержит
+        <input name="place" value="{{ filters.place }}" maxlength="50">
+      </label>
+      <label>От
+        <input name="date_from" type="date" value="{{ filters.date_from }}">
+      </label>
+      <label>До
+        <input name="date_to" type="date" value="{{ filters.date_to }}">
+      </label>
+      <label>Статус
+        <select name="status">
+          <option value="all" {% if filters.status == 'all' %}selected{% endif %}>все</option>
+          <option value="OPEN" {% if filters.status == 'OPEN' %}selected{% endif %}>открытые</option>
+          <option value="CLOSED" {% if filters.status == 'CLOSED' %}selected{% endif %}>закрытые</option>
+        </select>
+      </label>
+      <button type="submit" class="btn">Найти</button>
+    </form>
+
+    {% if not rows %}
+      <p class="muted">Ничего не найдено</p>
+    {% endif %}
+    {% for row in rows %}
+      <div class="card">
+        <div class="issue-head">
+          <a class="issue-place" href="/issues/{{ row.issue.id }}">{{ row.issue.place }}</a>
+          {% if row.issue.status == 'OPEN' %}<span class="tag tag-open">Открыт</span>
+          {% else %}<span class="tag tag-closed">Закрыт</span>{% endif %}
+        </div>
+        <div class="issue-desc">{{ row.issue.description }}</div>
+        <div class="muted">Последнее событие: {{ row.last_event }}
+          {% if row.issue.status == 'OPEN' %} · сейчас у: {{ row.admin_name }}{% endif %}</div>
+      </div>
+    {% endfor %}
+
+    {% if rows %}
+      {% set f = filters %}
+      {% set base = '/history?tab=issues&amp;place=' ~ (f.place | urlencode) ~ '&amp;date_from=' ~ f.date_from ~ '&amp;date_to=' ~ f.date_to ~ '&amp;status=' ~ f.status %}
+      <p class="pager">
+        {% if page > 1 %}<a href="{{ base }}&amp;page={{ page - 1 }}">← ранее</a>{% endif %}
+        Страница {{ page }}{% if total_pages > 1 %} из {{ total_pages }}{% endif %} ({{ total }} {{ total_word }})
+        {% if page < total_pages %}<a href="{{ base }}&amp;page={{ page + 1 }}">новее →</a>{% endif %}
+      </p>
+    {% endif %}
+  {% else %}
+    {% if not handovers %}
+      <p class="muted">Передач ещё не было</p>
+    {% endif %}
+    {% for row in handovers %}
+      <div class="card">
+        <div class="issue-head">
+          <a class="issue-place" href="/handovers/{{ row.handover.id }}">Смена {{ row.sender_name }}</a>
+          {% if row.handover.status == 'PENDING' %}<span class="tag tag-open">Ожидает приёма</span>
+          {% else %}<span class="tag tag-closed">Принята</span>{% endif %}
+        </div>
+        <div class="muted">Сдал: {{ row.sender_name }}, {{ row.sent_local }} ·
+          вопросов: {{ row.questions_count }}
+          {% if row.receiver_name %} · принял: {{ row.receiver_name }}, {{ row.accepted_local }}{% endif %}</div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

@@ -13,7 +13,7 @@ from .config import Settings, get_settings
 from .db import init_db, init_engine
 from .errors import AppError
 from .render import STATIC_DIR, render, templates
-from .routes import auth, handover, journal, overview, pages, snapshot, staff
+from .routes import auth, handover, history, journal, overview, pages, snapshot, staff
 from .security import new_csrf_token
 
 
@@ -37,6 +37,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(handover.router)
     app.include_router(snapshot.router)
     app.include_router(overview.router)
+    app.include_router(history.router)
     app.include_router(pages.router)
     app.include_router(staff.router)
 
