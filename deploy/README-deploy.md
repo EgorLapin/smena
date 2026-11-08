@@ -137,7 +137,9 @@ Caddy сам получит сертификат Let's Encrypt (порты 80/44
 
 ```bash
 ufw allow OpenSSH
-ufw allow 'Caddy Full'   # 80 + 443
+ufw allow 'Caddy Full'   # 80 + 443; если образа не даёт такой профиль
+                         # (бывает на образах хостинга, напр. TimeWeb):
+ufw allow 80/tcp && ufw allow 443/tcp
 ufw enable
 ```
 
