@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Сдача смены</h1>
+  <p class="pd-warning">После сдачи смена станет доступна только для чтения</p>
+
+  <h2 class="section">Открытые вопросы ({{ open_issues | length }})
+    <span class="muted">перейдут к следующей смене</span></h2>
+  {% if not open_issues %}
+    <p class="muted">Открытых вопросов нет, будет сдана пустая смена</p>
+  {% endif %}
+  {% for issue in open_issues %}
+    <div class="card">
+      <div class="issue-head"><a class="issue-place" href="/issues/{{ issue.id }}">{{ issue.place }}</a></div>
+      <div class="issue-desc">{{ issue.description }}</div>
+      {% if issue.next_action %}<div class="muted">Далее: {{ issue.next_action }}</div>{% endif %}
+    </div>
+  {% endfor %}
+
+  {% if closed_here %}
+    <h2 class="section">Решённые в этой смене ({{ closed_here | length }})
+      <span class="muted">не переносятся</span></h2>
+    {% for issue in closed_here %}
+      <div class="issue-closed-row">{{ issue.place }}: {{ issue.description }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="btn-row">
+    <form method="post" action="/shifts/{{ shift.id }}/handover" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+      <button type="submit" class="btn">Сдать смену</button>
+    </form>
+    <a class="btn btn-secondary" href="/journal">Вернуться в журнал</a>
+  </div>
+{% endblock %}

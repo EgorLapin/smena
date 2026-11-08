@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Передача смены</h1>
+  <p>Сдал: {{ sender.display_name }}, {{ sender_time }}</p>
+  {% if is_pending %}
+    <p><span class="tag tag-open">Статус: Ожидает приёма</span></p>
+  {% else %}
+    <p><span class="tag tag-closed">Статус: Принята</span></p>
+    {% if receiver %}<p>Принял: {{ receiver.display_name }}, {{ receiver_time }}</p>{% endif %}
+  {% endif %}
+
+  <h2 class="section">Открытые вопросы ({{ open_items | length }})</h2>
+  {% if not open_items %}
+    <p class="muted">Нет открытых вопросов</p>
+  {% endif %}
+  {% for item in open_items %}
+    <div class="card">
+      <div class="issue-head"><a class="issue-place" href="/issues/{{ item.issue_id }}">{{ item.place }}</a></div>
+      <div class="issue-desc">{{ item.description }}</div>
+      {% if item.next_action %}<div class="muted">Далее: {{ item.next_action }}</div>{% endif %}
+    </div>
+  {% endfor %}
+
+  {% if closed_items %}
+    <h2 class="section">Решено ({{ closed_items | length }})</h2>
+    {% for item in closed_items %}
+      <div class="issue-closed-row">{{ item.place }}: {{ item.description }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if can_accept %}
+    <div class="accept-block">
+      <form method="post" action="/handovers/{{ handover.id }}/accept" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+        <button type="submit" class="btn">Принять смену</button>
+      </form>
+      <p class="muted">Приём означает, что вы ознакомились с вопросами
+        и берёте их в работу.</p>
+    </div>
+  {% endif %}
+
+  <p><a href="/journal">В журнал</a></p>
+{% endblock %}
