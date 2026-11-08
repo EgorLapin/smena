@@ -13,7 +13,7 @@ from .config import Settings, get_settings
 from .db import init_db, init_engine
 from .errors import AppError
 from .render import STATIC_DIR, render, templates
-from .routes import auth, pages
+from .routes import auth, pages, staff
 from .security import new_csrf_token
 
 
@@ -34,6 +34,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     app.include_router(auth.router)
     app.include_router(pages.router)
+    app.include_router(staff.router)
 
     # --- CSRF-cookie: токен есть на каждый запрос (для скрытых полей форм) ------
 

@@ -17,11 +17,11 @@ from .. import models
 router = APIRouter()
 
 # Экраны, пришедшие в ТЗ позже T03: временно заглушка, но уже под ролью.
+# /staff реализован в T04 (routes/staff.py).
 _PLACEHOLDERS = {
     "journal": ("Журнал смены", "T05"),
     "overview": ("Обзор управляющего", "T09"),
     "history": ("История", "T10"),
-    "staff": ("Сотрудники", "T04"),
 }
 
 
@@ -54,8 +54,3 @@ def overview(request: Request, user: models.User = Depends(require_manager)):
 @router.get("/history", response_class=HTMLResponse)
 def history(request: Request, user: models.User = Depends(require_manager)):
     return _placeholder(request, _PLACEHOLDERS["history"][0], _PLACEHOLDERS["history"][1])
-
-
-@router.get("/staff", response_class=HTMLResponse)
-def staff(request: Request, user: models.User = Depends(require_manager)):
-    return _placeholder(request, _PLACEHOLDERS["staff"][0], _PLACEHOLDERS["staff"][1])

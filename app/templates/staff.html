@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Сотрудники</h1>
+  <p class="muted">Учётных записей: {{ active_count }} из {{ account_limit }}</p>
+
+  {% if users | length == 0 %}
+    <p class="muted">Сотрудников пока нет. Создайте учётные записи администраторов</p>
+  {% else %}
+    <table class="list">
+      <thead>
+        <tr><th>Имя</th><th>Логин</th><th>Статус</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr class="{% if not u.is_active %}row-off{% endif %}">
+            <td>{{ u.display_name }}{% if u.id == manager_id %} <span class="muted">(вы)</span>{% endif %}</td>
+            <td>{{ u.login }}</td>
+            <td>{% if u.is_active %}Активен{% else %}Отключён{% endif %}</td>
+            <td class="row-actions">
+              <form method="post" action="/staff/{{ u.id }}/password" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <input name="password" type="password" placeholder="Новый пароль"
+                       minlength="8" maxlength="128" autocomplete="new-password" required>
+                <button type="submit" class="btn btn-secondary">Новый пароль</button>
+              </form>
+              {% if u.is_active %}
+                {% if u.id != manager_id %}
+                  <form method="post" action="/staff/{{ u.id }}/active" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                    <input type="hidden" name="active" value="0">
+                    <button type="submit" class="btn btn-danger">Отключить</button>
+                  </form>
+                {% endif %}
+              {% else %}
+                <form method="post" action="/staff/{{ u.id }}/active" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                  <input type="hidden" name="active" value="1">
+                  <button type="submit" class="btn btn-secondary">Включить</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <h2>Добавить сотрудника</h2>
+  <form method="post" action="/staff" class="form">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+    {% set errs = field_errors or {} %}
+    <label class="{% if errs.display_name %}field-error{% endif %}">Имя
+      <input name="display_name" value="{{ values.get('display_name', '') }}" required maxlength="60">
+      {% if errs.display_name %}<span class="field-msg">{{ errs.display_name }}</span>{% endif %}
+    </label>
+    <label class="{% if errs.login %}field-error{% endif %}">Логин
+      <input name="login" value="{{ values.get('login', '') }}" required maxlength="32" autocomplete="off">
+      {% if errs.login %}<span class="field-msg">{{ errs.login }}</span>{% endif %}
+    </label>
+    <label class="{% if errs.password %}field-error{% endif %}">Начальный пароль
+      <input name="password" type="password" required autocomplete="new-password">
+      {% if errs.password %}<span class="field-msg">{{ errs.password }}</span>{% endif %}
+    </label>
+    <button type="submit" class="btn">Добавить</button>
+  </form>
+{% endblock %}
