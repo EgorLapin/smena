@@ -1,0 +1,16 @@
+# Bash-скрипты и systemd-юниты обязаны иметь LF даже при core.autocrlf=true
+# (иначе на Ubuntu онадписывается \r — «bad interpreter»).
+*.sh text eol=lf
+*.service text eol=lf
+Caddyfile text eol=lf
+
+# Текст проекта — нормализуем в репозитории в LF
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+.env.example text eol=lf
