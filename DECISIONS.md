@@ -180,6 +180,16 @@ Caddyfile -> `caddy validate` -> reload -> проверки deploy/README-deploy
 храним 14 локальных + 14 удалённых копий; объём расширяется на стороне хостинга
 без миграции. Порядок: пользователь создаёт бакет -> rclone remote на VPS ->
 BACKUP_REMOTE в /etc/smena/env -> cron backup.sh (T12) -> проверка AC-9.
+Реализовано (09.11.2026): бакет `1c0180d8-3142-4eb2-bc58-2b76fb2b825a`; rclone
+remote `smena-s3` (provider=Other, endpoint s3.twcstorage.ru, region ru-1,
+force_path_style), ключи только в /root/.config/rclone/rclone.conf (600), в
+репозиторий не попадают; `BACKUP_REMOTE=smena-s3:<бакет>`; cron
+/etc/cron.d/smena-backup (`15 3 * * *`). backup.sh прогнан живьём: суточная копия
+в /var/backups/smena и в бакете; анонимный GET объекта -> 403 (бакет приватный).
+Репетиция AC-9 вживую: `restore.sh --remote` скачал копию из S3,
+integrity_check=ok, база заменена (прежняя сохранена `*.pre-restore.<ts>`),
+smena active, /health ok. Удаление скрипта настройки с ключами — проверено на
+VPS и локально.
 
 ## Открытые вопросы (не блокируют старт)
 
