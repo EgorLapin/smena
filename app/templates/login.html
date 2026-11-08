@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Вход</h1>
+
+  {% if error_text %}
+    <div class="flash flash-error" role="alert">
+      {{ error_text }}{% if error_code %}<span class="err-code">{{ error_code }}</span>{% endif %}
+    </div>
+  {% endif %}
+
+  <form method="post" action="/login" class="form">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+    <label>Логин
+      <input name="login" value="{{ values.get('login', '') }}" required
+             autocomplete="username" maxlength="32">
+    </label>
+    <label>Пароль
+      <input name="password" type="password" required autocomplete="current-password">
+    </label>
+    <button type="submit" class="btn">Войти</button>
+  </form>
+
+  <p><a href="/register">Зарегистрировать отель</a></p>
+{% endblock %}

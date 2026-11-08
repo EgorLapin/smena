@@ -1,37 +1,61 @@
-"""Временные (заглушечные) маршруты каркаса T01.
+"""Главная (/) и временные страницы, защищённые по ролям (FR-A6).
 
-Реальные страницы появятся по задачам: вход — T03, журнал — T06/T07,
-передачи — T08/T09. На T01 здесь только индекс и служебная 501-страница,
-чтобы проверить pipeline Jinja2 → базовый шаблон → статика.
+Реальные экраны появятся по задачам: журнал — T05, сдача — T06, приём — T07,
+обзор/история/сотрудники — T04/T09/T10. Уже здесь GET-защита ролей даёт
+AC-7 (часть): ADMIN на /overview|/history|/staff|/demo-страницы → 403 FORBIDDEN,
+MANAGER на /journal → 403 FORBIDDEN. Это позволяет проверить матрицу прав
+до написания самих экранов.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+from ..deps import current_user, require_admin, require_manager
+from .. import models
 
 router = APIRouter()
 
+# Экраны, пришедшие в ТЗ позже T03: временно заглушка, но уже под ролью.
+_PLACEHOLDERS = {
+    "journal": ("Журнал смены", "T05"),
+    "overview": ("Обзор управляющего", "T09"),
+    "history": ("История", "T10"),
+    "staff": ("Сотрудники", "T04"),
+}
+
 
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request) -> HTMLResponse:
-    """Индекс: на T01 — заглушка «проезд далее», далее — редирект в журнал."""
-    from ..main import templates
+def index(request: Request, user: models.User = Depends(current_user)):
+    """303 на /journal (ADMIN) или /overview (MANAGER) — по ТЗ."""
+    target = "/journal" if user.role == models.Role.ADMIN else "/overview"
+    return RedirectResponse(target, status_code=303)
 
-    return templates.TemplateResponse(
-        request,
-        "index.html",
-        {"page_title": "СменаПринята"},
+
+def _placeholder(request: Request, title: str, task: str) -> HTMLResponse:
+    from ..render import render
+
+    return render(
+        request, "stub.html",
+        {"page_title": title, "feature": title, "task": task},
     )
 
 
-@router.get("/stub/{feature}", response_class=HTMLResponse)
-def stub(request: Request, feature: str) -> HTMLResponse:
-    """Заглушка для функций, которые ещё не реализованы (красивый placeholder)."""
-    from ..main import templates
+@router.get("/journal", response_class=HTMLResponse)
+def journal(request: Request, user: models.User = Depends(require_admin)):
+    return _placeholder(request, _PLACEHOLDERS["journal"][0], _PLACEHOLDERS["journal"][1])
 
-    return templates.TemplateResponse(
-        request,
-        "stub.html",
-        {"page_title": "В разработке", "feature": feature},
-        status_code=501,
-    )
+
+@router.get("/overview", response_class=HTMLResponse)
+def overview(request: Request, user: models.User = Depends(require_manager)):
+    return _placeholder(request, _PLACEHOLDERS["overview"][0], _PLACEHOLDERS["overview"][1])
+
+
+@router.get("/history", response_class=HTMLResponse)
+def history(request: Request, user: models.User = Depends(require_manager)):
+    return _placeholder(request, _PLACEHOLDERS["history"][0], _PLACEHOLDERS["history"][1])
+
+
+@router.get("/staff", response_class=HTMLResponse)
+def staff(request: Request, user: models.User = Depends(require_manager)):
+    return _placeholder(request, _PLACEHOLDERS["staff"][0], _PLACEHOLDERS["staff"][1])

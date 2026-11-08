@@ -1,18 +1,19 @@
-"""T01 — smoke-тесты каркаса.
+"""T01 — smoke-тесты каркаса (обновлены под T03: появилась аутентификация).
 
 Реальные тесты приёмки (AC-2…AC-8, AC-10, AC-11) добавляются вместе
-с задачами T02–T14. Здесь проверяется только то, что каркас живой:
-приложение собирается, Jinja2 рендерит базовый шаблон, /health отвечает,
-SQLite поднимается с нужными PRAGMA (WAL, busy_timeout — ТЗ).
+с задачами T02–T14. Здесь: приложение живое, /health отвечает, статика и
+базовый шаблон рендерятся, SQLite поднимается с нужными PRAGMA.
 """
 from __future__ import annotations
 
 
-def test_index_renders_jinja(client):
-    resp = client.get("/")
+def test_login_page_renders(client):
+    resp = client.get("/login")
     assert resp.status_code == 200
-    assert "СменаПринята" in resp.text
+    assert "Вход" in resp.text
     assert "<!DOCTYPE html>" in resp.text
+    #csrf-поле обязательо на всех формах (NFR-2)
+    assert 'name="csrf_token"' in resp.text
 
 
 def test_health_ok(client):
@@ -21,10 +22,9 @@ def test_health_ok(client):
     assert resp.json() == {"status": "ok"}
 
 
-def test_stub_returns_501(client):
-    resp = client.get("/stub/journal")
-    assert resp.status_code == 501
-    assert "Раздел" in resp.text
+def test_static_css_ok(client):
+    resp = client.get("/static/css/app.css")
+    assert resp.status_code == 200
 
 
 def test_sqlite_pragmas(client):

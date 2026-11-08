@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Регистрация отеля</h1>
+  <p class="muted">14 дней бесплатно, карта не нужна.</p>
+
+  {% if error_code %}
+    <div class="flash flash-error" role="alert">
+      Проверьте выделенные поля<span class="err-code">{{ error_code }}</span>
+    </div>
+  {% endif %}
+
+  {% set errs = field_errors or {} %}
+  <form method="post" action="/register" class="form">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+
+    <label class="{% if errs.hotel_name %}field-error{% endif %}">Название отеля
+      <input name="hotel_name" value="{{ values.get('hotel_name', '') }}" required maxlength="80">
+      {% if errs.hotel_name %}<span class="field-msg">{{ errs.hotel_name }}</span>{% endif %}
+    </label>
+
+    <label class="{% if errs.timezone %}field-error{% endif %}">Часовой пояс
+      <select name="timezone">
+        {% for tz in timezones %}
+          <option value="{{ tz }}" {% if tz == default_timezone %}selected{% endif %}>{{ tz }}</option>
+        {% endfor %}
+      </select>
+      {% if errs.timezone %}<span class="field-msg">{{ errs.timezone }}</span>{% endif %}
+    </label>
+
+    <label class="{% if errs.display_name %}field-error{% endif %}">Имя управляющего
+      <input name="display_name" value="{{ values.get('display_name', '') }}" required maxlength="60">
+      {% if errs.display_name %}<span class="field-msg">{{ errs.display_name }}</span>{% endif %}
+    </label>
+
+    <label class="{% if errs.login %}field-error{% endif %}">Логин
+      <input name="login" value="{{ values.get('login', '') }}" required maxlength="32"
+             autocomplete="username">
+      {% if errs.login %}<span class="field-msg">{{ errs.login }}</span>{% endif %}
+    </label>
+
+    <label class="{% if errs.password %}field-error{% endif %}">Пароль
+      <input name="password" type="password" required autocomplete="new-password">
+      {% if errs.password %}<span class="field-msg">{{ errs.password }}</span>{% endif %}
+    </label>
+
+    <label class="{% if errs.password_confirm %}field-error{% endif %}">Повтор пароля
+      <input name="password_confirm" type="password" required autocomplete="new-password">
+      {% if errs.password_confirm %}<span class="field-msg">{{ errs.password_confirm }}</span>{% endif %}
+    </label>
+
+    <button type="submit" class="btn">Зарегистрировать</button>
+  </form>
+
+  <p><a href="/login">Уже есть аккаунт? Войти</a></p>
+{% endblock %}

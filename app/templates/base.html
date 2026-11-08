@@ -10,18 +10,37 @@
   <header class="topbar">
     <a class="brand" href="/">Смена<span>Принята</span></a>
     <nav class="topnav">
-      <!-- Навигация появится на T03 (вход/выход) и T06 (журнал) -->
-      {% block topnav %}{% endblock %}
+      {# Навигация по ролям (ТЗ, «Верхняя панель»). #}
+      {% set u = request.state.user %}
+      {% if u and u.role == 'ADMIN' %}
+        <a href="/journal">Журнал</a>
+      {% elif u and u.role == 'MANAGER' %}
+        <a href="/overview">Обзор</a>
+        <a href="/history">История</a>
+        <a href="/staff">Сотрудники</a>
+      {% endif %}
+      {% if u %}
+        <span class="username">{{ u.display_name }}</span>
+        <form method="post" action="/logout" class="inline-form">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+          <button type="submit" class="linklike">Выйти</button>
+        </form>
+      {% endif %}
     </nav>
   </header>
 
   <main class="container">
-    <!-- Сюда T02+ будут выводить flash-сообщения об ошибках по таблице ошибок ТЗ -->
+    {% if flash %}
+      <div class="flash flash-{{ flash.kind }}" role="alert">
+        {{ flash.text }}{% if flash.code %}<span class="err-code">{{ flash.code }}</span>{% endif %}
+      </div>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 
   <footer class="footer">
     СменаПринята — журнал передачи смены · учебный MVP, 2026
   </footer>
+  <script src="/static/js/app.js"></script>
 </body>
 </html>

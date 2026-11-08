@@ -1,7 +1,7 @@
 # СменаПринята
 
 Веб-приложение — журнал передачи смены для мини-отелей (10–30 номеров).
-Учебный MVP. Статус: **T01–T02 готовы** (каркас + схема БД с тестами).
+Учебный MVP. Статус: **T01–T03 готовы** (каркас, схема БД, аутентификация и доступ).
 
 ## Документация проекта
 
@@ -50,14 +50,20 @@ AC-1, AC-9, AC-12, AC-13 — ручная приёмка.
 
 ```
 app/
-  main.py        # фабрика create_app + точка входа uvicorn
+  main.py        # фабрика create_app, middleware CSRF, обработчики ошибок
   config.py      # настройки из env (имена — по таблице «Конфигурация» ТЗ)
   db.py          # движок, сессии, PRAGMA (WAL/busy_timeout/FK), BEGIN IMMEDIATE, init_db
   models.py      # T02: таблицы, частичные индексы, CHECK, триггеры неизменяемости
-  services/      # (T05+) бизнес-правила: перенос без копий, идемпотентность, лимиты
-  routes/        # маршруты-страницы (Jinja2)
-  templates/     # base.html + страницы
-  static/        # css/js
+  security.py    # T03: argon2, подписанная cookie-сессия (30 дней), CSRF
+  validation.py  # T03: AL-1 (обрезка, lower, place_norm) и правила валидации
+  messages_ru.py # тексты ошибок по таблице ТЗ (расширяется на T11)
+  errors.py      # AppError: код + статус + redirect/страница
+  deps.py        # current_user/require_admin/require_manager, flash
+  render.py      # единый рендеринг Jinja2 + flash
+  services/      # бизнес-правила и транзакции (auth — T03; журнал/передачи — T05+)
+  routes/        # маршруты-страницы: auth (T03), pages (заглушки под ролями)
+  templates/     # base + login/register/error/stub (журнал — T05)
+  static/        # css/js (JS блокирует кнопку при отправке — NFR-6)
 config/          # timezones.txt (список поясов для регистрации)
 docs/            # текст ТЗ v1.1.2 (извлечение из DOCX)
 tests/           # pytest (фикстура client — временная БД на тест)

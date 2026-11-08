@@ -59,6 +59,8 @@ def client(tmp_path, monkeypatch) -> TestClient:
 
     db.reset_engine()
     app = create_app(get_settings())
-    with TestClient(app) as test_client:
+    # base_url=https — как в проде (только HTTPS): иначе cookie-ядро отклонит
+    # cookie с флагом Secure и CSRF-сценарии нельзя будет прогнать честно.
+    with TestClient(app, base_url="https://testserver") as test_client:
         yield test_client
     db.reset_engine()
