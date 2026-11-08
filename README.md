@@ -104,7 +104,8 @@ app/
   templates/     # login/register/error/journal/issue_form/issue_card/handover_*
                  # /overview/history/staff + base
   static/        # css/js (адаптив от 360px; JS блокирует кнопку — NFR-6)
-scripts/         # backup.sh, restore.sh (T12); set_paid.py (FR-A7); seed_demo.py
+scripts/         # backup.sh, restore.sh (T12); set_paid.py (FR-A7); seed_demo.py;
+                 # smoke_live.py — приёмо-сдаточный прогон по живому стенду
 deploy/          # Caddyfile, 502.html, smena.service, README-deploy.md (T13)
 config/          # timezones.txt — пояса для регистрации
 docs/            # текст ТЗ v1.1.2
