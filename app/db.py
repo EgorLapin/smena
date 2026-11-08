@@ -1,11 +1,10 @@
-"""Слой доступа к БД: движок, сессии, PRAGMA SQLite.
+"""Слой доступа к БД: движок, сессии, PRAGMA SQLite, создание схемы.
 
-Правила ТЗ (раздел «Хранение данных»):
-- журнал WAL, synchronous=NORMAL;
-- busy_timeout = 5000 мс;
-- внешние ключи включены;
-- запись — транзакциями BEGIN IMMEDIATE (это применят сервисы на T05+;
-  здесь подготовлен helper immediate_transaction).
+Правила ТЗ (архитектурная схема + NFR-1/NFR-4):
+- журнал WAL, synchronous=NORMAL, busy_timeout=5000, внешние ключи ON;
+- операции записи — транзакциями BEGIN IMMEDIATE (helper immediate_transaction,
+  применяют сервисы на T05+);
+- схема (таблицы, индексы, триггеры) создаётся init_db() с нуля (критерий T02).
 """
 from __future__ import annotations
 
@@ -13,19 +12,25 @@ from contextlib import contextmanager
 from typing import Iterator
 
 from sqlalchemy import Engine, create_engine, event
-from sqlalchemy.engine import Engine as SAEngine
 from sqlalchemy.orm import Session, sessionmaker
 
+from . import models  # noqa: F401 — регистрация таблиц в Base.metadata
 from .config import Settings, get_settings
+from .models import Base
 
 _engine: Engine | None = None
 _session_factory: sessionmaker[Session] | None = None
 
 
+def _database_url(settings: Settings) -> str:
+    db_file = settings.db_file
+    db_file.parent.mkdir(parents=True, exist_ok=True)
+    return f"sqlite:///{db_file.as_posix()}"
+
+
 def _make_engine(settings: Settings) -> Engine:
-    settings.database_path.parent.mkdir(parents=True, exist_ok=True)
     engine = create_engine(
-        settings.database_url,
+        _database_url(settings),
         connect_args={"check_same_thread": False},  # uvicorn 1 воркер, но пул потоков
         pool_pre_ping=True,
     )
@@ -49,6 +54,15 @@ def init_engine(settings: Settings | None = None) -> Engine:
         _engine = _make_engine(settings or get_settings())
         _session_factory = sessionmaker(bind=_engine, expire_on_commit=False)
     return _engine
+
+
+def init_db() -> None:
+    """Создать схему с нуля: таблицы, индексы, CHECK-ограничения, триггеры.
+
+    create_all идемпотентен (проверяет наличие таблиц); триггеры создаются
+    слушателем after_create в models.py.
+    """
+    Base.metadata.create_all(get_engine())
 
 
 def get_engine() -> Engine:
@@ -81,12 +95,13 @@ def get_db() -> Iterator[Session]:
 
 @contextmanager
 def immediate_transaction(session: Session) -> Iterator[Session]:
-    """Транзакция BEGIN IMMEDIATE (ТЗ: сериализация конкурентных записей).
+    """Транзакция BEGIN IMMEDIATE (ТЗ: записи выполняются строго по очереди).
 
-    Использование (T05+):
+    Использование (сервисы, T05+):
         with immediate_transaction(session):
             ...изменения...
             session.commit()
+    При исключении — rollback.
     """
     connection = session.connection()
     connection.exec_driver_sql("BEGIN IMMEDIATE")

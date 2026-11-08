@@ -1,7 +1,7 @@
 # СменаПринята
 
 Веб-приложение — журнал передачи смены для мини-отелей (10–30 номеров).
-Учебный MVP. Статус: **T01 (каркас) — готово**.
+Учебный MVP. Статус: **T01–T02 готовы** (каркас + схема БД с тестами).
 
 ## Документация проекта
 
@@ -51,16 +51,18 @@ AC-1, AC-9, AC-12, AC-13 — ручная приёмка.
 ```
 app/
   main.py        # фабрика create_app + точка входа uvicorn
-  config.py      # настройки из env (см. .env.example)
-  db.py          # движок, сессии, PRAGMA (WAL/busy_timeout/FK), BEGIN IMMEDIATE
-  models.py      # (T02) таблицы, неизменяемость через триггеры
+  config.py      # настройки из env (имена — по таблице «Конфигурация» ТЗ)
+  db.py          # движок, сессии, PRAGMA (WAL/busy_timeout/FK), BEGIN IMMEDIATE, init_db
+  models.py      # T02: таблицы, частичные индексы, CHECK, триггеры неизменяемости
   services/      # (T05+) бизнес-правила: перенос без копий, идемпотентность, лимиты
   routes/        # маршруты-страницы (Jinja2)
   templates/     # base.html + страницы
   static/        # css/js
+config/          # timezones.txt (список поясов для регистрации)
+docs/            # текст ТЗ v1.1.2 (извлечение из DOCX)
 tests/           # pytest (фикстура client — временная БД на тест)
-scripts/         # (T13) backup.sh, seed_demo
-deploy/          # (T14) systemd unit, Caddyfile, cron
+scripts/         # (T12) backup.sh, restore.sh, seed_demo
+deploy/          # (T13) systemd unit, Caddyfile, cron
 ```
 
 ## План

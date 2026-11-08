@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .config import Settings, get_settings
-from .db import init_engine
+from .db import init_db, init_engine
 from .routes import pages
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
@@ -27,6 +27,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     """Фабрика приложения (нужна тестам с временной БД)."""
     settings = settings or get_settings()
     init_engine(settings)
+    init_db()  # схема с нуля: таблицы, индексы, CHECK, триггеры (T02)
 
     app = FastAPI(
         title="СменаПринята",

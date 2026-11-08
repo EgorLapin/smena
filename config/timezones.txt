@@ -1,0 +1,28 @@
+# Российские часовые пояса (IANA) — список для формы регистрации отеля.
+# Источник: алфавитный порядок. DEFAULT_TIMEZONE (Asia/Novosibirsk) обязан быть здесь.
+Europe/Kaliningrad
+Europe/Moscow
+Europe/Simferopol
+Europe/Volgograd
+Europe/Astrakhan
+Europe/Saratov
+Europe/Ulyanovsk
+Europe/Samara
+Asia/Yekaterinburg
+Asia/Omsk
+Asia/Novosibirsk
+Asia/Barnaul
+Asia/Tomsk
+Asia/Novokuznetsk
+Asia/Krasnoyarsk
+Asia/Irkutsk
+Asia/Chita
+Asia/Yakutsk
+Asia/Khandyga
+Asia/Vladivostok
+Asia/Ust-Nera
+Asia/Magadan
+Asia/Srednekolymsk
+Asia/Sakhalin
+Asia/Kamchatka
+Asia/Anadyr

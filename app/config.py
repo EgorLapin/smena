@@ -1,16 +1,21 @@
 """Конфигурация приложения.
 
+Имена и значения по умолчанию — строго по разделу «Конфигурация» ТЗ v1.1.2:
+SECRET_KEY, DATABASE_PATH, TRIAL_DAYS, ACCOUNT_LIMIT, PENDING_OVERDUE_HOURS,
+ISSUE_STALE_HOURS, ISSUE_STALE_CARRIES, DEFAULT_TIMEZONE, BACKUP_REMOTE.
+
 Источник значений — переменные окружения; для локальной разработки
 подхватывается файл .env в корне проекта (простой парсер без зависимостей,
-см. DECISIONS.md D-004). На VPS значения задаются в systemd unit.
+см. DECISIONS.md D-002). На VPS значения задаются в systemd unit.
+Список часовых поясов для регистрации — config/timezones.txt.
 """
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
-# Корень проекта (каталог, где лежит pyproject/README, — родитель app/)
+# Корень проекта (каталог с app/, config/, tests/)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -31,37 +36,53 @@ def _load_dotenv(path: Path) -> None:
         os.environ.setdefault(key, value)
 
 
-def _as_bool(value: str) -> bool:
-    return value.lower() in ("1", "true", "yes", "on")
-
-
 @dataclass(frozen=True)
 class Settings:
-    database_url: str = "sqlite:///data/smena.db"
-    secret_key: str = "change-me"
-    debug: bool = False
-    pilot_days: int = 14
-    max_active_issues: int = 10
-    base_dir: Path = field(default_factory=lambda: BASE_DIR)
+    # Поля соответствуют таблице «Конфигурация» ТЗ (имена env — в скобках).
+    secret_key: str = ""                     # SECRET_KEY (обязателен)
+    database_path: str = "/var/lib/smena/smena.db"  # DATABASE_PATH
+    trial_days: int = 14                     # TRIAL_DAYS
+    account_limit: int = 10                  # ACCOUNT_LIMIT
+    pending_overdue_hours: int = 12          # PENDING_OVERDUE_HOURS (A-5)
+    issue_stale_hours: int = 24              # ISSUE_STALE_HOURS (A-5)
+    issue_stale_carries: int = 2             # ISSUE_STALE_CARRIES (A-5)
+    default_timezone: str = "Asia/Novosibirsk"  # DEFAULT_TIMEZONE (A-8)
+    backup_remote: str = ""                  # BACKUP_REMOTE (обязателен до T12)
 
     @property
-    def database_path(self) -> Path:
-        """Файл SQLite как путь (из sqlite:///... URL)."""
-        prefix = "sqlite:///"
-        if not self.database_url.startswith(prefix):
-            raise ValueError(f"ожидается sqlite URL, получено: {self.database_url!r}")
-        rel = self.database_url[len(prefix):]
-        path = Path(rel)
-        return path if path.is_absolute() else self.base_dir / path
+    def db_file(self) -> Path:
+        """Файл SQLite как путь; относительный путь считается от корня проекта."""
+        path = Path(self.database_path)
+        return path if path.is_absolute() else BASE_DIR / path
 
 
 def get_settings() -> Settings:
-    """Собрать настройки из окружения (лениво — чтобы тесты могли подменить)."""
+    """Собрать настройки из окружения (лениво — тесты подменяют env через monkeypatch)."""
     _load_dotenv(BASE_DIR / ".env")
+
+    secret_key = os.getenv("SECRET_KEY", "")
+    if not secret_key or secret_key == "change-me":
+        # ТЗ: SECRET_KEY обязателен. Не даём стартнуть с пустым/шаблонным ключом.
+        raise RuntimeError(
+            "SECRET_KEY не задан. Скопируйте .env.example в .env и сгенерируйте ключ: "
+            "python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+        )
+
     return Settings(
-        database_url=os.getenv("DATABASE_URL", "sqlite:///data/smena.db"),
-        secret_key=os.getenv("SECRET_KEY", "change-me"),
-        debug=_as_bool(os.getenv("DEBUG", "0")),
-        pilot_days=int(os.getenv("PILOT_DAYS", "14")),
-        max_active_issues=int(os.getenv("MAX_ACTIVE_ISSUES", "10")),
+        secret_key=secret_key,
+        database_path=os.getenv("DATABASE_PATH", "/var/lib/smena/smena.db"),
+        trial_days=int(os.getenv("TRIAL_DAYS", "14")),
+        account_limit=int(os.getenv("ACCOUNT_LIMIT", "10")),
+        pending_overdue_hours=int(os.getenv("PENDING_OVERDUE_HOURS", "12")),
+        issue_stale_hours=int(os.getenv("ISSUE_STALE_HOURS", "24")),
+        issue_stale_carries=int(os.getenv("ISSUE_STALE_CARRIES", "2")),
+        default_timezone=os.getenv("DEFAULT_TIMEZONE", "Asia/Novosibirsk"),
+        backup_remote=os.getenv("BACKUP_REMOTE", ""),
     )
+
+
+def get_timezones() -> list[str]:
+    """Список российских часовых поясов из config/timezones.txt (для формы регистрации)."""
+    path = BASE_DIR / "config" / "timezones.txt"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return [line.strip() for line in lines if line.strip() and not line.startswith("#")]
