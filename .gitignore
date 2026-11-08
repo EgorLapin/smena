@@ -27,3 +27,6 @@ htmlcov/
 .idea/
 Thumbs.db
 .DS_Store
+
+# Материалы приёмки (скриншоты, замеры) — по правилам AC-checklist не коммитятся
+docs/accept/
