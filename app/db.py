@@ -33,6 +33,11 @@ def _make_engine(settings: Settings) -> Engine:
         _database_url(settings),
         connect_args={"check_same_thread": False},  # uvicorn 1 воркер, но пул потоков
         pool_pre_ping=True,
+        # ВНИМАНИЕ (проверено на поведении pysqlite): isolation_level остаётся
+        # отложенным — чтение не берёт write-замок. Транзакции ЗАПИСИ обёрнуты
+        # в immediate_transaction() (BEGIN IMMEDIATE до первого DML), и только
+        # так пишут сервисы (AL-2/AL-3). pysqlite не вставит свой BEGIN внутрь
+        # уже открытой транзакции (проверяет sqlite3_get_autocommit).
     )
 
     @event.listens_for(engine, "connect")
@@ -97,13 +102,23 @@ def get_db() -> Iterator[Session]:
 def immediate_transaction(session: Session) -> Iterator[Session]:
     """Транзакция BEGIN IMMEDIATE (ТЗ: записи выполняются строго по очереди).
 
-    Использование (сервисы, T05+):
+    Контракт использования (сервисы T04+):
         with immediate_transaction(session):
             ...изменения...
             session.commit()
-    При исключении — rollback.
+    - вызывать ДО первых записей сессии (чтение — можно: pysqlite открывает
+      транзакцию только на DML, read-запросы не мешают);
+    - BEGIN IMMEDIATE берёт write-замок сразу — конкурентная запись встанет
+      в очередь на busy_timeout=5000 вместо гонки на проверках;
+    - при исключении — rollback.
     """
     connection = session.connection()
+    dbapi = connection.connection.dbapi_connection
+    if dbapi.in_transaction:
+        raise RuntimeError(
+            "immediate_transaction() должен вызываться до первых записей сессии "
+            "(сначала service-чтения, затем — этот блок)"
+        )
     connection.exec_driver_sql("BEGIN IMMEDIATE")
     try:
         yield session
