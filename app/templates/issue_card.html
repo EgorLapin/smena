@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ issue.place }}: {{ issue.description }}</h1>
+  <p>
+    {% if issue.status == 'OPEN' %}
+      <span class="tag tag-open">Открыт</span>
+    {% else %}
+      <span class="tag tag-closed">Закрыт</span>
+    {% endif %}
+    {% if issue.handover_count > 0 %}<span class="tag">{{ plural_carries(issue.handover_count) }}</span>{% endif %}
+  </p>
+
+  <dl class="card-list">
+    <div><dt>Автор</dt><dd>{{ author.display_name }}, {{ created_sh }}</dd></div>
+    {% if shift %}
+      <div><dt>Текущая смена</dt><dd>{{ shift_admin.display_name if shift_admin else '?' }}
+        (статус: {{ shift.status }})</dd></div>
+    {% endif %}
+    {% if issue.next_action %}
+      <div><dt>Следующее действие</dt><dd>{{ issue.next_action }}</dd></div>
+    {% endif %}
+    {% if issue.status == 'CLOSED' and closer %}
+      <div><dt>Закрыт</dt><dd>{{ closer.display_name }}, {{ closed_sh }}</dd></div>
+    {% endif %}
+  </dl>
+
+  <h2 class="section">Хронология событий</h2>
+  <ol class="timeline">
+    {% for ev in timeline %}
+      <li>
+        <span class="ev-label">{{ ev.label }}</span>
+        <span class="muted">{{ ev.actor }}, {{ ev.time }}</span>
+        {% if ev.details %}
+          <ul class="ev-payload">
+            {% for line in ev.details %}<li>{{ line }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+
+  <p><a href="/journal">В журнал</a></p>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+  {% if shift %}
+    <div class="journal-head">
+      <h1>Смена открыта в {{ opened_time }}</h1>
+      <a class="btn" href="/shifts/{{ shift.id }}/handover">Сдать смену</a>
+    </div>
+  {% else %}
+    <h1>Журнал смены</h1>
+    <p class="muted">Смена не открыта</p>
+    <form method="post" action="/shifts/open" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+      <button type="submit" class="btn">Открыть смену</button>
+    </form>
+  {% endif %}
+
+  {% if pending %}
+    <h2 class="section">Ожидают приёма ({{ pending | length }})</h2>
+    {% for p in pending %}
+      <div class="card pending-card">
+        <div>Смена {{ p.sender.display_name }}, сдана {{ p.sent_local }},
+          открытых: {{ p.open_count }}, прошло {{ p.age }}</div>
+        <a class="btn btn-secondary" href="/handovers/{{ p.handover.id }}">Открыть</a>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if shift %}
+    <h2 class="section">Открытые вопросы ({{ open_issues | length }})
+      <a class="btn btn-secondary" href="/issues/new">Добавить</a>
+    </h2>
+
+    {% if not open_issues %}
+      <p class="muted">Открытых вопросов нет. Добавьте вопрос или сдайте смену</p>
+    {% endif %}
+    {% for issue in open_issues %}
+      <div class="card issue-card">
+        <div class="issue-head">
+          <a class="issue-place" href="/issues/{{ issue.id }}">{{ issue.place }}</a>
+          {% if issue.handover_count > 0 %}
+            <span class="tag">{{ plural_carries(issue.handover_count) }}</span>
+          {% endif %}
+        </div>
+        <div class="issue-desc">{{ issue.description }}</div>
+        {% if issue.next_action %}
+          <div class="muted">Далее: {{ issue.next_action }}</div>
+        {% endif %}
+        <div class="issue-actions">
+          <a class="btn btn-secondary" href="/issues/{{ issue.id }}/edit">Изменить</a>
+          <form method="post" action="/issues/{{ issue.id }}/close" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+            <button type="submit" class="btn">Решён</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+
+    {% if closed_here %}
+      <details class="closed-block">
+        <summary>Решено в этой смене ({{ closed_here | length }})</summary>
+        {% for issue in closed_here %}
+          <div class="issue-closed-row">
+            <a href="/issues/{{ issue.id }}">{{ issue.place }}</a>: {{ issue.description }}
+          </div>
+        {% endfor %}
+      </details>
+    {% endif %}
+  {% endif %}
+{% endblock %}

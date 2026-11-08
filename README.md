@@ -1,7 +1,8 @@
 # СменаПринята
 
 Веб-приложение — журнал передачи смены для мини-отелей (10–30 номеров).
-Учебный MVP. Статус: **T01–T03 готовы** (каркас, схема БД, аутентификация и доступ).
+Учебный MVP. Статус: **T01–T05 готовы** (каркас, схема БД, доступ, сотрудники,
+журнал). Конфиги деплоя (T13) и скрипты копий (T12) — в `deploy/`, `scripts/`.
 
 ## Документация проекта
 
@@ -56,14 +57,17 @@ app/
   models.py      # T02: таблицы, частичные индексы, CHECK, триггеры неизменяемости
   security.py    # T03: argon2, подписанная cookie-сессия (30 дней), CSRF
   validation.py  # T03: AL-1 (обрезка, lower, place_norm) и правила валидации
+  times.py       # показ времени в поясе отеля, возраст «1 ч 20 мин», плюрализация
   messages_ru.py # тексты ошибок по таблице ТЗ (расширяется на T11)
   errors.py      # AppError: код + статус + redirect/страница
   deps.py        # current_user/require_admin/require_manager, flash
   render.py      # единый рендеринг Jinja2 + flash
-  services/      # бизнес-правила и транзакции (auth — T03; журнал/передачи — T05+)
-  routes/        # маршруты-страницы: auth (T03), pages (заглушки под ролями)
-  templates/     # base + login/register/error/stub (журнал — T05)
+  services/      # бизнес-правила и транзакции: auth (T03), staff (T04), journal (T05)
+  routes/        # страницы: auth (T03), staff (T04), journal+карточка (T05), заглушки
+  templates/     # base, login/register/error/staff/journal/issue_form/issue_card/stub
   static/        # css/js (JS блокирует кнопку при отправке — NFR-6)
+scripts/         # T12: backup.sh (sqlite3 .backup + gzip + rclone), restore.sh
+deploy/          # T13: Caddyfile, systemd unit, 502.html, инструкция выката
 config/          # timezones.txt (список поясов для регистрации)
 docs/            # текст ТЗ v1.1.2 (извлечение из DOCX)
 tests/           # pytest (фикстура client — временная БД на тест)

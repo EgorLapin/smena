@@ -6,3 +6,6 @@ Jinja2>=3.1
 python-multipart>=0.0.9
 argon2-cffi>=23.1
 itsdangerous>=2.2
+# База IANA-поясов для zoneinfo. На Ubuntu есть в системе (/usr/share/zoneinfo),
+# на Windows без неё zoneinfo не находит пояса — ставим пакетом для переносимости.
+tzdata>=2024.1

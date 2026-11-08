@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ page_title }}</h1>
+
+  {% set errs = field_errors or {} %}
+  {% if errs %}
+    <div class="flash flash-error" role="alert">
+      Проверьте выделенные поля<span class="err-code">VALIDATION_ERROR</span>
+    </div>
+  {% endif %}
+
+  <form method="post" action="{{ action }}" class="form">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+
+    <label class="{% if errs.place %}field-error{% endif %}">Место или номер комнаты
+      <input name="place" value="{{ values.get('place', '') }}" required maxlength="50"
+             autofocus>
+      {% if errs.place %}<span class="field-msg">{{ errs.place }}</span>{% endif %}
+    </label>
+
+    <label class="{% if errs.description %}field-error{% endif %}">Что нужно сделать или что обещано
+      <textarea name="description" required maxlength="500" rows="4">{{ values.get('description', '') }}</textarea>
+      {% if errs.description %}<span class="field-msg">{{ errs.description }}</span>{% endif %}
+    </label>
+
+    <label class="{% if errs.next_action %}field-error{% endif %}">Следующее действие (необязательно)
+      <textarea name="next_action" maxlength="300" rows="2">{{ values.get('next_action', '') }}</textarea>
+      {% if errs.next_action %}<span class="field-msg">{{ errs.next_action }}</span>{% endif %}
+    </label>
+
+    <p class="pd-warning">Не вносите ФИО гостей, документы, платёжные данные и сведения
+      о здоровье. Достаточно номера комнаты и сути вопроса.</p>
+
+    <div class="btn-row">
+      <button type="submit" class="btn">Сохранить</button>
+      <a class="btn btn-secondary" href="/journal">Отмена</a>
+    </div>
+  </form>
+{% endblock %}
