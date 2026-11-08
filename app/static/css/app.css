@@ -162,3 +162,31 @@ textarea { font: inherit; padding: 0.55rem 0.6rem; border: 1px solid var(--borde
 .timeline li { margin-bottom: 0.6rem; }
 .ev-label { font-weight: 600; text-transform: capitalize; margin-right: 0.4rem; }
 .ev-payload { margin: 0.2rem 0 0; color: var(--muted); }
+.accept-block { margin-top: 1.2rem; }
+
+/* --- Адаптивность от 360 px (NFR-6, AC-13) --------------------------------------
+   Горизонтальной прокрутки быть не должно: длинные слова переносятся, таблицы
+   сотрудников на узких экранах становятся списком карточек, всё остальное уже
+   flex-wrap. */
+main, .card, .flash, .pd-warning, td, dd, li { overflow-wrap: anywhere; }
+input, select, textarea { min-width: 0; max-width: 100%; }
+
+@media (max-width: 560px) {
+  .container { padding: 1rem 0.8rem; margin: 0.8rem auto; }
+  .topbar { flex-wrap: wrap; gap: 0.3rem; }
+  .topnav a, .username { margin-left: 0.6rem; }
+  .journal-head, .pending-card { flex-direction: column; align-items: stretch; }
+  .card-list div { flex-direction: column; gap: 0.1rem; }
+  .card-list dt { min-width: 0; }
+  .pager { flex-wrap: wrap; }
+
+  /* Таблица сотрудников — карточки вместо строк (нет горизонтали на 360 px) */
+  .list, .list tbody, .list tr, .list td, .list th { display: block; width: 100%; }
+  .list tr { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.6rem;
+             margin-bottom: 0.6rem; background: #fff; }
+  .list thead { display: none; }
+  .list td { border: 0; padding: 0.2rem 0; }
+  .list td[data-label]::before {
+    content: attr(data-label) ": "; color: var(--muted); font-weight: 600;
+  }
+}

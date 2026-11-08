@@ -13,9 +13,9 @@
       <tbody>
         {% for u in users %}
           <tr class="{% if not u.is_active %}row-off{% endif %}">
-            <td>{{ u.display_name }}{% if u.id == manager_id %} <span class="muted">(вы)</span>{% endif %}</td>
-            <td>{{ u.login }}</td>
-            <td>{% if u.is_active %}Активен{% else %}Отключён{% endif %}</td>
+            <td data-label="Имя">{{ u.display_name }}{% if u.id == manager_id %} <span class="muted">(вы)</span>{% endif %}</td>
+            <td data-label="Логин">{{ u.login }}</td>
+            <td data-label="Статус">{% if u.is_active %}Активен{% else %}Отключён{% endif %}</td>
             <td class="row-actions">
               <form method="post" action="/staff/{{ u.id }}/password" class="inline">
                 <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
