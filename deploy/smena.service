@@ -1,0 +1,30 @@
+# /etc/systemd/system/smena.service — приложение «СменаПринята» (T13)
+# Установка: sudo cp deploy/smena.service /etc/systemd/system/
+#            sudo systemctl daemon-reload && sudo systemctl enable --now smena
+# Конфигурация (SECRET_KEY и др.) — в /etc/smena/env (формат KEY=VALUE).
+
+[Unit]
+Description=SMenaPrinyata journal
+After=network-online.target
+# network-online.target без Wants не даёт эффекта — явно просим дождаться сеть
+# (сертификаты и прокси всё равно за Caddy, это для корректного старта).
+Wants=network-online.target
+
+[Service]
+User=smena
+Group=smena
+WorkingDirectory=/srv/smena
+EnvironmentFile=/etc/smena/env
+# Строго 1 воркер (SQLite WAL, единый писатель — по ТЗ).
+ExecStart=/srv/smena/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=always
+RestartSec=2
+
+# Базовое укрепление
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/smena /var/log/smena
+
+[Install]
+WantedBy=multi-user.target
