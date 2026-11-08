@@ -10,8 +10,8 @@
   <header class="topbar">
     <a class="brand" href="/">Смена<span>Принята</span></a>
     <nav class="topnav">
-      {# Навигация по ролям (ТЗ, «Верхняя панель»). #}
-      {% set u = request.state.user %}
+      {# Навигация по ролям (ТЗ, «Верхняя панель»): снимок пользователя, не ORM. #}
+      {% set u = request.state.user_view %}
       {% if u and u.role == 'ADMIN' %}
         <a href="/journal">Журнал</a>
       {% elif u and u.role == 'MANAGER' %}

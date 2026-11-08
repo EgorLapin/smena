@@ -3,7 +3,13 @@
   <h1>{{ page_title }}</h1>
 
   {% set errs = field_errors or {} %}
-  {% if errs %}
+  {% if server_error %}
+    <div class="flash flash-error" role="alert">
+      Запись не сохранена. Попробуйте ещё раз. Если ошибка повторяется,
+      передайте смену на бумаге и внесите запись позже
+      <span class="err-code">INTERNAL_ERROR</span>
+    </div>
+  {% elif errs %}
     <div class="flash flash-error" role="alert">
       Проверьте выделенные поля<span class="err-code">VALIDATION_ERROR</span>
     </div>

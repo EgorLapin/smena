@@ -102,11 +102,11 @@ def shift_open(
 
 def _issue_form_page(request: Request, *, action: str, values: dict,
                      field_errors: dict | None = None, title: str = "Новый вопрос",
-                     status: int = 200) -> HTMLResponse:
+                     status: int = 200, server_error: bool = False) -> HTMLResponse:
     return render(
         request, "issue_form.html",
         {"page_title": title, "action": action, "values": values,
-         "field_errors": field_errors or {}},
+         "field_errors": field_errors or {}, "server_error": server_error},
         status=status,
     )
 
@@ -139,6 +139,11 @@ def issue_create(
                 request, action="/issues", values=values,
                 field_errors=getattr(exc, "field_errors", {}), status=422)
         raise  # NO_OPEN_SHIFT → 303 + flash «Сначала откройте смену»
+    except Exception:
+        # AC-10 / FR-1.7: сбой записи — та же форма, «Запись не сохранена»,
+        # введённые значения сохранены (транзакция уже откатана в сервисе).
+        return _issue_form_page(request, action="/issues", values=values,
+                                status=500, server_error=True)
     redirect = RedirectResponse("/journal", status_code=303)
     flash_set(redirect, settings, "ok", "Вопрос добавлен")
     return redirect

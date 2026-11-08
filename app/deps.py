@@ -43,7 +43,22 @@ def current_user(
     if user is None:
         raise AppError("AUTH_REQUIRED")
     request.state.user = user
+    set_user_view(request, user)
     return user
+
+
+def set_user_view(request: Request, user: models.User | None) -> None:
+    """Снимок пользователя для шаблонов: role/display_name копируются сразу.
+
+    После rollback()/commit() в сервисных транзакциях ORM-объекты «просрочены»,
+    а к моменту рендеринга ошибки сессия уже закрыта — обращение к u.role в
+    base.html тогда падает (DetachedInstanceError). Шаблон верха читает только
+    этот снимок (request.state.user_view), ORM — только внутри обработчика.
+    """
+    request.state.user_view = (
+        None if user is None
+        else {"role": user.role, "display_name": user.display_name}
+    )
 
 
 def load_user_safe(session: Session, user_id: int | None) -> models.User | None:
@@ -62,6 +77,7 @@ def optional_user(
     user_id = read_session_token(settings, token) if token else None
     user = load_user_safe(session, user_id)
     request.state.user = user
+    set_user_view(request, user)
     return user
 
 

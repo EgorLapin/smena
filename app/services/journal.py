@@ -64,13 +64,19 @@ def _validate_issue_fields(*, place: str, description: str, next_action: str) ->
     return errors
 
 
-def _add_event(session: Session, issue: models.Issue, shift_id: int, actor_id: int,
-               type_: str, payload: dict | None = None) -> None:
+def add_event(session: Session, issue: models.Issue, shift_id: int, actor_id: int,
+              type_: str, payload: dict | None = None) -> None:
+    """Запись события жизни вопроса (AL-4). Единая точка для журнала и приёма:
+    payload сериализуется здесь, поэтому тест сбоя подменяет одну функцию."""
     session.add(models.IssueEvent(
         hotel_id=issue.hotel_id, issue_id=issue.id, shift_id=shift_id,
         actor_id=actor_id, type=type_,
         payload=json.dumps(payload, ensure_ascii=False) if payload else None,
     ))
+
+
+# Совместимость внутри пакета.
+_add_event = add_event
 
 
 def create_issue(
@@ -109,11 +115,15 @@ def create_issue(
         return issue
 
 
-def get_issue_or_404(session: Session, hotel_id: int, issue_id: int) -> models.Issue:
-    """FR-A5/AC-6: чужого отеля не существует для пользователя — 404-страница."""
+def get_issue_or_404(session: Session, hotel_id: int, issue_id: int, *,
+                     redirect: str | None = None) -> models.Issue:
+    """FR-A5/AC-6: чужого отеля не существует для пользователя.
+
+    GET-контекст (redirect=None) — страница 404; POST-контекст — AppError с
+    redirect, т.е. 303 + красный flash с кодом (контракт ошибок ТЗ)."""
     issue = session.get(models.Issue, issue_id)
     if issue is None or issue.hotel_id != hotel_id:
-        raise AppError("NOT_FOUND")
+        raise AppError("NOT_FOUND", redirect=redirect)
     return issue
 
 
@@ -154,7 +164,8 @@ def update_issue(
         raise exc
 
     with immediate_transaction(session):
-        issue = get_issue_or_404(session, admin.hotel_id, issue_id)
+        issue = get_issue_or_404(session, admin.hotel_id, issue_id,
+                                 redirect="/journal")  # POST-контракт
         shift = _require_editable(session, admin, issue)
 
         changes: dict[str, list[str]] = {}
@@ -181,7 +192,8 @@ def close_issue(session: Session, admin: models.User, issue_id: int) -> models.I
     """FR-1.4: CLOSED + автор + время + событие CLOSED; вопрос остаётся
     в истории и в этой смене, дальше не переносится (FR-2.6)."""
     with immediate_transaction(session):
-        issue = get_issue_or_404(session, admin.hotel_id, issue_id)
+        issue = get_issue_or_404(session, admin.hotel_id, issue_id,
+                                 redirect="/journal")  # POST-контракт
         shift = _require_editable(session, admin, issue)
         issue.status = models.IssueStatus.CLOSED
         issue.closed_by = admin.id

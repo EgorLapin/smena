@@ -8,15 +8,13 @@ AL-2: сдать можно только свою смену отеля в ст�
 """
 from __future__ import annotations
 
-import json
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import immediate_transaction
 from ..errors import AppError
-from .journal import get_open_shift
+from .journal import add_event, get_open_shift
 
 
 def handover_shift(
@@ -146,16 +144,12 @@ def accept_handover(
         for issue in open_issues:
             issue.current_shift_id = receiver_shift.id
             issue.handover_count += 1
-            session.add(models.IssueEvent(
-                hotel_id=issue.hotel_id, issue_id=issue.id,
-                shift_id=receiver_shift.id, actor_id=admin.id,
-                type=models.EventType.CARRIED,
-                payload=json.dumps({
-                    "handover_id": handover.id,
-                    "from_shift_id": source_shift.id,
-                    "to_shift_id": receiver_shift.id,
-                }, ensure_ascii=False),
-            ))
+            add_event(session, issue, receiver_shift.id, admin.id,
+                      models.EventType.CARRIED, {
+                          "handover_id": handover.id,
+                          "from_shift_id": source_shift.id,
+                          "to_shift_id": receiver_shift.id,
+                      })
             carried += 1
 
         handover.status = models.HandoverStatus.ACCEPTED

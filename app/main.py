@@ -46,6 +46,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         token = request.cookies.get("smena_csrf") or new_csrf_token()
         request.state.csrf_token = token
         request.state.user = None  # перезапишет current_user, если пользователь есть
+        request.state.user_view = None  # снимок для шаблонов (deps.set_user_view)
         response = await call_next(request)
         if "smena_csrf" not in request.cookies:
             from .security import set_csrf_cookie

@@ -61,6 +61,9 @@ def client(tmp_path, monkeypatch) -> TestClient:
     app = create_app(get_settings())
     # base_url=https — как в проде (только HTTPS): иначе cookie-ядро отклонит
     # cookie с флагом Secure и CSRF-сценарии нельзя будет прогнать честно.
-    with TestClient(app, base_url="https://testserver") as test_client:
+    # raise_server_exceptions=False: необработанные исключения превращает наш
+    # обработчик INTERNAL_ERROR — тесты AC-10 проверяют страницу 500, а не traceback.
+    with TestClient(app, base_url="https://testserver",
+                    raise_server_exceptions=False) as test_client:
         yield test_client
     db.reset_engine()
