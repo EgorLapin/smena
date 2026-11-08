@@ -14,13 +14,15 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..config import Settings
 from ..db import get_db
-from ..deps import require_admin
+from ..deps import flash_set, get_settings_dep, require_admin
 from ..errors import AppError
 from ..render import render
 from ..security import check_csrf
 from ..services import journal as j
-from ..services.handover import handover_for_shift, handover_shift
+from ..services.handover import accept_handover, handover_for_shift, handover_shift
+from ..times import plural
 
 router = APIRouter()
 
@@ -66,3 +68,28 @@ def handover_submit(
     handover, _created = handover_shift(session, admin, shift_id)
     # 303 на снимок по id ПЕРЕДАЧИ (не смены) — FR маршрутной таблицы ТЗ.
     return RedirectResponse(f"/handovers/{handover.id}", status_code=303)
+
+
+@router.post("/handovers/{handover_id}/accept")
+def accept_submit(
+    request: Request,
+    handover_id: int,
+    session: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings_dep),
+    admin: models.User = Depends(require_admin),
+    csrf_token: str = Form(""),
+):
+    if not check_csrf(request, csrf_token):
+        raise AppError("CSRF_FAILED")
+    result = accept_handover(session, admin, handover_id)
+    redirect = RedirectResponse("/journal", status_code=303)
+    if result.created:
+        # FR-2.5: сообщение с числом перенесённых вопросов (FR-2.7 про параллельность
+        # обслуживает транзакция IMMEDIATE — второй приём уйдёт в ALREADY_ACCEPTED).
+        flash_set(redirect, settings, "ok",
+                  f"Смена принята, перенесено {result.carried} "
+                  f"{plural(result.carried, 'вопрос', 'вопроса', 'вопросов')}")
+    else:
+        # Повтор тем же пользователем: состояние не меняется (FR-2.7).
+        flash_set(redirect, settings, "ok", "Вы уже приняли эту смену")
+    return redirect
