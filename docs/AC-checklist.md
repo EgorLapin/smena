@@ -99,11 +99,16 @@
       Set-Cookie на проде 09.11.2026).
 - [x] POST без csrf_token (curl) → 403 «Страница устарела… CSRF_FAILED»
       (проверено на проде 09.11.2026).
-- [ ] Все экраны при ширине 360 px (DevTools device toolbar): без горизонтальной
+- [x] Все экраны при ширине 360 px (DevTools device toolbar): без горизонтальной
       прокрутки, кнопки ≥44 px: login, register, journal, issue form, issue card,
       handover check, snapshot, overview, history, staff, error.
+      Пройдена визуально пользователем 09.11.2026 ~16:30–16:45 на проде
+      (DevTools Responsive 360×800; на экранах замер `documentElement.scrollWidth
+      <= innerWidth` из консоли — OK; кнопки — глазами, ≥44 px).
       Автоматический прогон 09.11.2026 (headless Edge, 360×800): все 12 экранов
       — горизонтальный скролл 0, элементов <44 px нет (править «на глаз» в
       DevTools всё равно тебе). Скриншоты + measure.json в docs/accept/
       (01…12). Найдено и исправлено попутно: кнопки «Выйти» (linklike), вкладки
       истории (.tab) и поля фильтров истории были <44 px — подняты в app.css.
+      Уточнение к маршруту: «История»/«Обзор»/«Сотрудники» — экраны MANAGER,
+      под ADMIN ссылки в навигации нет по AC-7 (403), это не дефект.
