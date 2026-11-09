@@ -30,3 +30,8 @@ Thumbs.db
 
 # Материалы приёмки (скриншоты, замеры) — по правилам AC-checklist не коммитятся
 docs/accept/
+
+# Инструменты съёмки экрана (узел puppeteer и профиль Edge)
+docs/report-work/capture/node_modules/
+docs/report-work/capture/*.png
+docs/report-work/shots/.edge-profile/
