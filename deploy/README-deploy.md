@@ -195,5 +195,8 @@ curl -s http://127.0.0.1:8000/health
 ## 11. Что дальше (не входит в этот минимум)
 
 - cron-бэкапы `scripts/backup.sh` (sqlite3 `.backup` + rclone → `BACKUP_REMOTE`) — T12;
+  расписание `/etc/cron.d/smena-backup`: `15 20 * * *` UTC = 03:15 Новосибирска
+  (сервер в UTC — локальное «15 3» было бы днём по НСК; D-026), от root,
+  backup.sh: root:root 755, в строке явные `/usr/bin/bash` и PATH.
 - logrotate для `/var/log/smena`;
 - мониторинг/алерты — вне объёма MVP.

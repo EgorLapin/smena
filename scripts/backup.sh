@@ -13,8 +13,10 @@
 # При любой ошибке причина пишется в журнал (syslog: t=smena-backup,
 # и /var/log/smena-backup.log) и скрипт завершается с ненулевым кодом.
 #
-# Запуск из crontab (root):
-#   15 3 * * * root /srv/smena/scripts/backup.sh >> /var/log/smena-backup.log 2>&1
+# Запуск из crontab (root). ВНИМАНИЕ: сервер обычно в UTC — «ночное» время
+# пересчитывай в пояс сервера (для Asia/Novosibirsk 03:15 = 15 20 * * *),
+# и вызывай bash явно (у файла может не быть +x после scp):
+#   15 20 * * * root /usr/bin/bash /srv/smena/scripts/backup.sh >> /var/log/smena-backup.log 2>&1
 
 set -euo pipefail
 

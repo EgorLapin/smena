@@ -192,7 +192,9 @@ BACKUP_REMOTE в /etc/smena/env -> cron backup.sh (T12) -> проверка AC-9
 remote `smena-s3` (provider=Other, endpoint s3.twcstorage.ru, region ru-1,
 force_path_style), ключи только в /root/.config/rclone/rclone.conf (600), в
 репозиторий не попадают; `BACKUP_REMOTE=smena-s3:<бакет>`; cron
-/etc/cron.d/smena-backup (`15 3 * * *`). backup.sh прогнан живьём: суточная копия
+/etc/cron.d/smena-backup (`15 3 * * *` — как выяснилось утром 09.11, время
+сервера UTC, т.е. день по НСК; переписано на `15 20` — см. D-026). backup.sh
+прогнан живьём: суточная копия
 в /var/backups/smena и в бакете; анонимный GET объекта -> 403 (бакет приватный).
 Репетиция AC-9 вживую: `restore.sh --remote` скачал копию из S3,
 integrity_check=ok, база заменена (прежняя сохранена `*.pre-restore.<ts>`),
@@ -296,6 +298,25 @@ VPS и локально.
   готовое фиксируем как выполненное. Задача T15 — «закрыта» (README, HANDOFF).
 * Проверка живьём: `status=CLOSED` на /history отдаёт закрытые вопросы отеля
   (проверка AC-5/S в live_acceptance — PASS локально и на VPS-стенде).
+
+### D-026. Утренняя самопроверка вскрыла неработающий cron-бэкап (09.11.2026, 08:30)
+Статус: исправлено на VPS, проверка повторена.
+* Копия smena-2026-11-09.sql.gz утром отсутствовала. Две причины, обе реальные:
+  1. `/etc/cron.d/smena-backup` был написан на локальное время («15 3»), а
+     сервер живёт в UTC: 03:15 UTC = 10:15 Новосибирска — «ночной» бэкап просто
+     не успевал наступить. Теперь `15 20 * * *` (= 03:15 Asia/Novosibirsk).
+  2. `/srv/smena/scripts/backup.sh` лежал 666 world-writable без бита +x —
+      прямой вызов из cron падал бы и без этого на Permission denied.
+      Стало: root:root 755; в строке cron явный `/usr/bin/bash` и свой PATH.
+* Отладочный урок: `crontab -l` пустой ≠ нет планировщика — задание жило в
+  /etc/cron.d/smena-backup; искать надо там же, где ставил (grep smena /etc/cron*).
+* Проверка «как cron»: прогон через `env -i PATH=… HOME=/root bash backup.sh`
+  (минимальное окружение) — код 0, копия ушла в /var/backups/smena и в S3
+  (обе даты на месте). `systemctl reload cron` не работает (unit не умеет) —
+  cron перечитывает файлы сам по change- detection; для верности restart.
+* Итог утра: службы active, health ok, память 376/1900 МиБ, диск 16%, oom 0,
+  HTTPS 200/308 в норме; единственный минус — бэкап — починен, копия 09.11
+  на месте, следующий прогон сегодня 20:15 UTC (03:15 ночи 10.11 по НСК).
 
 ## Открытые вопросы (не блокируют старт)
 

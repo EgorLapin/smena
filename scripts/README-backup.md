@@ -51,10 +51,13 @@ touch /var/log/smena-backup.log && chown root:adm /var/log/smena-backup.log
 
 ## Ежедневный запуск (cron)
 
-Файл `/etc/cron.d/smena-backup` (строка вида):
+Файл `/etc/cron.d/smena-backup`. ВАЖНО: cron смотрит время сервера (обычно
+UTC), а не местное время отеля — для «03:15 Новосибирск» на UTC-машине пишем
+`15 20`. Вызов явным `/usr/bin/bash` (после scp у файла может не быть +x):
 
 ```cron
-15 3 * * * root /srv/smena/scripts/backup.sh >> /var/log/smena-backup.log 2>&1
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+15 20 * * * root /usr/bin/bash /srv/smena/scripts/backup.sh >> /var/log/smena-backup.log 2>&1
 ```
 
 Защита от наложения запусков встроена (`flock`), повторный cron-запуск
