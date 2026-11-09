@@ -37,6 +37,7 @@ def handover_snapshot(
     tz = hotel.timezone
     sender = session.get(models.User, handover.sender_id)
     receiver = session.get(models.User, handover.receiver_id) if handover.receiver_id else None
+    shift = session.get(models.Shift, handover.shift_id)
 
     items = list(session.scalars(
         select(models.HandoverItem)
@@ -65,5 +66,6 @@ def handover_snapshot(
             "closed_items": closed_items,
             "can_accept": can_accept,
             "is_pending": handover.status == models.HandoverStatus.PENDING,
+            "is_demo": bool(shift.is_demo),
         },
     )

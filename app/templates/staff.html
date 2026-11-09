@@ -46,6 +46,9 @@
   {% endif %}
 
   <h2>Добавить сотрудника</h2>
+  <p class="muted">Новый сотрудник получает роль администратора: он ведёт журнал
+    и принимает смены. Начальный пароль сообщите сотруднику сразу — повторный
+    просмотр невозможен; при утере замените его кнопкой «Новый пароль» ниже.</p>
   <form method="post" action="/staff" class="form">
     <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
     {% set errs = field_errors or {} %}

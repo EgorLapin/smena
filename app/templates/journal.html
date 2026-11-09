@@ -18,8 +18,8 @@
     <h2 class="section">Ожидают приёма ({{ pending | length }})</h2>
     {% for p in pending %}
       <div class="card pending-card">
-        <div>Смена {{ p.sender.display_name }}, сдана {{ p.sent_local }},
-          открытых: {{ p.open_count }}, прошло {{ p.age }}</div>
+        <div>Смена {{ p.sender.display_name }}{% if p.is_demo %} <span class="tag tag-demo">Демо</span>{% endif %},
+          сдана {{ p.sent_local }}, открытых: {{ p.open_count }}, прошло {{ p.age }}</div>
         <a class="btn btn-secondary" href="/handovers/{{ p.handover.id }}">Открыть</a>
       </div>
     {% endfor %}

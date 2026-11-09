@@ -298,6 +298,35 @@ def test_demo_pending_never_overdue(client):
     assert "Просрочено" not in page.text  # FR-A8: демо не помечается просроченной
 
 
+def test_demo_visible_in_journal_and_snapshot(client):
+    """D-027 (AC-12, прогон 09.11): принимающий должен видеть, что передача
+    демо- («откуда вопросы, которые никто не писал?»), а без кнопки — кто
+    вообще может принять («как принять демо-передачу?»)."""
+    _manager(client)
+    create_admin_via_db(client, "ivan", "Иван П.")
+    client.post("/demo/handover",
+                data={"csrf_token": get_csrf(client, "/overview")},
+                follow_redirects=False)
+    demo_handover = int(db_scalar(
+        "SELECT h.id FROM handover h JOIN shift s ON s.id=h.shift_id "
+        "WHERE s.is_demo=1"))
+
+    client.cookies.clear()
+    login(client, "ivan")
+    assert "Демо" in client.get("/journal").text  # метка в карточке журнала
+    snapshot = client.get(f"/handovers/{demo_handover}").text
+    assert "Демо" in snapshot
+    assert "вопросы вымышленные" in snapshot      # снимок объясняет природу
+    assert "Принять смену" in snapshot
+
+    # Автор (MANAGER, сдавший демо) кнопки не видит — и ему сказано, кто примет
+    client.cookies.clear()
+    login(client, "manager")
+    snapshot = client.get(f"/handovers/{demo_handover}").text
+    assert "Принять смену" not in snapshot
+    assert "примет администратор отеля" in snapshot
+
+
 # --- AC-7: ADMIN на /overview — 403 (реализовано ранее, закрепляем на живом экране) ------
 
 

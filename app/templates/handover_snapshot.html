@@ -3,10 +3,14 @@
   <h1>Передача смены</h1>
   <p>Сдал: {{ sender.display_name }}, {{ sender_time }}</p>
   {% if is_pending %}
-    <p><span class="tag tag-open">Статус: Ожидает приёма</span></p>
+    <p><span class="tag tag-open">Статус: Ожидает приёма</span>{% if is_demo %} <span class="tag tag-demo">Демо</span>{% endif %}</p>
   {% else %}
-    <p><span class="tag tag-closed">Статус: Принята</span></p>
+    <p><span class="tag tag-closed">Статус: Принята</span>{% if is_demo %} <span class="tag tag-demo">Демо</span>{% endif %}</p>
     {% if receiver %}<p>Принял: {{ receiver.display_name }}, {{ receiver_time }}</p>{% endif %}
+  {% endif %}
+  {% if is_demo %}
+    <p class="muted">Демонстрационная передача: вопросы вымышленные, созданы
+      кнопкой «Создать демо-передачу».</p>
   {% endif %}
 
   <h2 class="section">Открытые вопросы ({{ open_items | length }})</h2>
@@ -37,6 +41,9 @@
       <p class="muted">Приём означает, что вы ознакомились с вопросами
         и берёте их в работу.</p>
     </div>
+  {% elif is_pending %}
+    <p class="muted">Смену примет администратор отеля — сотрудник, который её
+      не сдавал. Учётные записи сотрудников — на экране «Сотрудники».</p>
   {% endif %}
 
   <p><a href="/journal">В журнал</a></p>

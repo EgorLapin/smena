@@ -236,10 +236,13 @@ def journal_closed_here(session: Session, shift_id: int) -> list[models.Issue]:
 
 def pending_handovers(session: Session, hotel_id: int, exclude_user_id: int | None = None):
     """FR-2.4: непринятые передачи отеля, кроме собственных. Открывает список
-    старых раньше (ждут приёма дольше всех)."""
+    старых раньше (ждут приёма дольше всех). Третье поле — Shift.is_demo:
+    журналу нужна метка «Демо» (D-027), иначе вымышленные вопросы демо-передачи
+    выглядят как написанные кем-то."""
     stmt = (
-        select(models.Handover, models.User)
+        select(models.Handover, models.User, models.Shift.is_demo)
         .join(models.User, models.User.id == models.Handover.sender_id)
+        .join(models.Shift, models.Shift.id == models.Handover.shift_id)
         .where(
             models.Handover.hotel_id == hotel_id,
             models.Handover.status == models.HandoverStatus.PENDING,

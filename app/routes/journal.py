@@ -57,11 +57,12 @@ def journal_page(
     now = models.utcnow()
 
     pending = []
-    for handover, sender in j.pending_handovers(session, admin.hotel_id,
-                                                exclude_user_id=admin.id):
+    for handover, sender, is_demo in j.pending_handovers(session, admin.hotel_id,
+                                                         exclude_user_id=admin.id):
         pending.append({
             "handover": handover,
             "sender": sender,
+            "is_demo": bool(is_demo),
             "sent_local": fmt_time(handover.sent_at, tz),
             "open_count": j.open_issue_count(session, handover.shift_id),
             "age": humanize_age(handover.sent_at, now),
